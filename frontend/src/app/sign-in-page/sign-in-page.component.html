@@ -1,0 +1,15 @@
+<body>
+    <div class="text">
+        <h1>Username: </h1>
+        <input id="username-input" [(ngModel)]="usernameText">
+        <h1>Password: </h1>
+        <input id="password-input" [(ngModel)]="passwordText">
+        <div class="buttons">
+            <button id="sign-in" (click)="signIn()">Sign In</button>
+            <button id="log-in" (click)="logIn()">Log In</button>
+        </div>
+    </div>
+    <div class="video-wrapper">
+        <video id="background-video" src="JellyfishBackground.mp4" [muted]="true" autoplay loop></video>
+    </div>
+</body>

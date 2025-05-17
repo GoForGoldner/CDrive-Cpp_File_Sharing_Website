@@ -1,0 +1,28 @@
+<nav>
+    <span class="logo">CDrive</span>
+
+    <button class="import-button" (click)="fileButtonClick()">
+        Import C++ Files
+    </button>
+</nav>
+
+<body>
+    <div class="main">
+        <h2 *ngIf="!currentUser || !currentUser.cppFiles || currentUser.cppFiles.length === 0; else files">
+            You currently have no files.
+        </h2>
+
+        <ng-template #files>
+            <div class="column" *ngFor="let columnNum of [].constructor(4).keys()">
+                <div class="cpp-file" *ngFor="let cppFile of currentUser?.cppFiles; let i = index"
+                    [style.display]="i % 4 === columnNum ? 'block' : 'none'"
+                    (click) = "cppFileClick(cppFile);">
+                    <h3>{{cppFile.filename}}</h3>
+                    <pre>{{cppFile.source_code}}</pre>
+                </div>
+            </div>
+        </ng-template>
+    </div>
+</body>
+
+<input type="file" #fileInput (change)="fileChange($event)" accept=".cpp" multiple style="display: none">

@@ -2,8 +2,16 @@ services:
   frontend:
     build:
       context: ./frontend
+    image: cdriveapp:v1
     ports:
       - "80:80"
+    expose:
+      - "80:80"
+    volumes:
+      - ./frontend:/app
+      #volume needed?
+    networks:
+      - app-network
     depends_on:
       - backend
 
@@ -14,6 +22,8 @@ services:
       - "8080:8080"
     depends_on:
       - db
+    networks:
+      - app-network
 
   db:
     image: postgres:16
@@ -25,6 +35,12 @@ services:
       - POSTGRES_PASSWORD=password
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    networks:
+      - app-network
 
 volumes:
   postgres-data:
+
+networks:
+  app-network:
+    driver: bridge

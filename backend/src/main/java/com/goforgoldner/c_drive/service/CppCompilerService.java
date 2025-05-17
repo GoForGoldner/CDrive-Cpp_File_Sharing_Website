@@ -9,12 +9,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 
+/**
+ * A helper class designed to compile C++ files. This class has public methods to both compile and
+ * execute C++ files.
+ */
 public class CppCompilerService {
+
   /**
    * Compiles C++ code and returns the path to the executable.
    *
-   * @param sourceCode The C++ source code to compile
-   * @return Path to the compiled executable, or null if compilation failed
+   * @param sourceCode The C++ source code to compile.
+   * @return Path to the compiled executable, or null if compilation failed.
    */
   public static Path compileCode(String sourceCode) {
     try {
@@ -25,23 +30,43 @@ public class CppCompilerService {
 
       boolean success = executeCompiler(sourceFile, outputFile);
 
-      if (success) {
-        return outputFile;
-      } else {
-        return null;
-      }
+      return success ? outputFile : null;
     } catch (Exception e) {
-      e.printStackTrace();
       return null;
     }
   }
 
-  public static Path executeFile(Path executable) throws ExecutionException, InterruptedException, TimeoutException {
-    ExecutorService executor = Executors.newSingleThreadExecutor();
-    Future<Path> output = executor.submit(new ExecutableCallable(executable));
-    return output.get(5, TimeUnit.SECONDS);
+  /**
+   * Generates a thread to call an executable file and return the output into a '.txt' file.
+   * Currently, there is a 5-second maximum on the time of the thread to prevent issues with input
+   * methods like "cin" causing the thread to wait infinitely.
+   *
+   * @param executable Path to an exe / executable file.
+   * @return A path to a '.txt' file, or null if the executable failed.
+   */
+  public static Path executeFile(Path executable) {
+    // Create a new thread
+    try {
+      ExecutorService executor = Executors.newSingleThreadExecutor();
+      // Add a new thread
+      Future<Path> output = executor.submit(new ExecutableCallable(executable));
+
+      // Get the output from the executable and wait a maximum of 5 seconds.
+      return output.get(5, TimeUnit.SECONDS);
+    } catch (Exception e) {
+      return null;
+    }
   }
 
+  /**
+   * Compiles a file using g++.
+   *
+   * @param sourceFile The path to the C++ source file.
+   * @param outputFile The path to the output executable file.
+   * @return A boolean that represents if the process exited successfully.
+   * @throws IOException An I/O error occurs.
+   * @throws InterruptedException This thread was blocked by another thread.
+   */
   private static boolean executeCompiler(Path sourceFile, Path outputFile)
       throws IOException, InterruptedException {
     ProcessBuilder processBuilder = createCompilerProcess(sourceFile, outputFile);
@@ -53,6 +78,14 @@ public class CppCompilerService {
     return exitCode == 0;
   }
 
+  /**
+   * Creates a proper ProcessBuilder with the compilation statement and error stream redirected into
+   * the standard output.
+   *
+   * @param sourceFile The path to the C++ source file.
+   * @param outputFile The path to the output executable file.
+   * @return A ProcessBuilder that can run the compilation process.
+   */
   private static ProcessBuilder createCompilerProcess(Path sourceFile, Path outputFile) {
     ProcessBuilder processBuilder =
         new ProcessBuilder("g++", sourceFile.toString(), "-o", outputFile.toString());
@@ -60,6 +93,12 @@ public class CppCompilerService {
     return processBuilder;
   }
 
+  /**
+   * Gets any output information from standard output when the file is being compiled.
+   *
+   * @param process The process that is handling compilation of a file.
+   * @throws IOException An I/O error occurs.
+   */
   private static void captureProcessOutput(Process process) throws IOException {
     try (BufferedReader reader =
         new BufferedReader(
@@ -71,6 +110,12 @@ public class CppCompilerService {
     }
   }
 
+  /**
+   * A class that contains a Callable function for executing a file. Currently, the class can only
+   * handle inputs (no using 'std::cin').
+   *
+   * @param executable A path to the exe / executable file.
+   */
   private record ExecutableCallable(Path executable) implements Callable<Path> {
 
     @Override

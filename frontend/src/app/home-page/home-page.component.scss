@@ -1,0 +1,44 @@
+nav {
+    .logo {
+        position: absolute;
+        top: 1rem;
+        left: 1.5rem;
+    }
+}
+
+button {
+    margin-right: 2rem;
+}
+
+main {
+    display: flex;
+}
+
+#knight-gif {
+
+    // padding-right: 3rem;
+    // padding-top: 5rem;
+    clip-path: inset(2rem 0rem 1rem 8rem);
+
+    width: 50rem;
+    border: 1px solid green;
+}
+
+.text-section {
+    padding-top: 3rem;
+    padding-left: 7rem;
+
+    .logo {
+        font-size: 2em;
+    }
+
+    h1 {
+        width: 16ch;
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+    }
+
+    p {
+        padding-bottom: 1rem;
+    }
+}

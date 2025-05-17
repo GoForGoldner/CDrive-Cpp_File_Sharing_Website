@@ -1,16 +1,14 @@
-# Build stage
 FROM node:18-alpine AS build
 WORKDIR /app
-COPY . .
+COPY package*.json ./
 RUN npm install
+RUN npx ngcc --properties es2023 browser module main --first-only --create-ivy-entry-points
+COPY . .
 RUN npm run build
 
-# Production stage
-FROM nginx:alpine
-
-# Remove default nginx static resources
-RUN rm -rf /usr/share/nginx/html/*
-# Copy Angular app files
-COPY dist/cdrive/browser /usr/share/nginx/html/
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+FROM nginx:stable
+COPY default.conf /etc/nginx/conf.d
+COPY --from=build /app/dist/cdrive/browser /usr/share/nginx/html/
 EXPOSE 80
+
+#RUN npm install -g @angular/cli@latest

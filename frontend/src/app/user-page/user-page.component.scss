@@ -1,0 +1,58 @@
+nav {
+    position: fixed;
+}
+
+h3 {
+    color: white;
+}
+
+button {
+    margin-right: 2rem;
+}
+
+.logo {
+    position: absolute;
+    top: 1rem;
+    left: 1.5rem;
+}
+
+h2 {
+    color: white;
+}
+
+.main {
+    padding-top: 10rem;
+    display: flex;
+    flex-wrap: wrap;
+    place-content: center;
+}
+
+body {
+    background-color: #194a7a;
+    min-height: 100vh;
+}
+
+.column {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    width: 20%;
+}
+
+.cpp-file {
+    padding: .5rem;
+    margin: .5rem;
+    border-radius: 1rem;
+    max-height: 30rem;
+    overflow: hidden;
+    
+    pre {
+        font-size: .5rem;
+        color: #d1dbe4;
+        overflow: hidden;
+        margin-right: .5rem;
+        margin-bottom: 1rem;
+    }
+
+    background-color: #476f95;
+}

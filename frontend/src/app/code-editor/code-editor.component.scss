@@ -1,0 +1,42 @@
+body {
+    position: relative;
+    margin: 0;
+    padding: none;
+    outline: none;
+    height: 42rem;
+    // background-color: #1e1e1e;
+}
+
+ngx-monaco-editor {
+    padding: 1rem;
+    height: 80%;
+}
+
+button {
+    position: absolute;
+    width: 5em;
+    font-size: 2rem;
+    color: black;
+    border: 0;
+    border-radius: 3rem;
+}
+
+#save-button {
+    right: 10%;
+    bottom: 35%;
+    background-color: rgb(0, 85, 0);
+
+    &:hover {
+        background-color: rgb(143, 206, 143);
+    }
+}
+
+#run-button {
+    right: 10%;
+    bottom: 25%;
+    background-color: rgb(123, 0, 0);
+
+    &:hover {
+        background-color: rgb(190, 66, 66);
+    }
+}
