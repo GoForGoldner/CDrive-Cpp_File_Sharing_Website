@@ -4,7 +4,7 @@ A full-stack C++ IDE and file management web application built with Angular, Spr
 
 **🔗 [GitHub Repository](https://github.com/GoForGoldner/CDrive-Cpp_File_Sharing_Website)**
 
-<video autoplay loop muted controls src="CDriveCurrentDemo.mp4" title="CDrive demo"></video>
+![CDrive Demo Video](CDriveCurrentDemo.gif)
 
 ## 🚀 Features
 
