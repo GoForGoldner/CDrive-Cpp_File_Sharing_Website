@@ -14,9 +14,9 @@ public class CorsConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
 
-        // Allow all origins for development (restrict this in production)
-        config.addAllowedOrigin("http://localhost:4200");
+        // Allow all origins for development
         config.addAllowedOrigin("http://localhost");
+        config.addAllowedOrigin("http://localhost:4200");
 
         // Allow common HTTP methods
         config.addAllowedMethod("GET");

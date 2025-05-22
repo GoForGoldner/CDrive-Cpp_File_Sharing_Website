@@ -74,35 +74,6 @@ public class CppFileEntity {
     this.user = user;
   }
 
-  /**
-   * Compiles the source-code into a executable file using g++.
-   *
-   * @return A path to an executable file
-   */
-  public Path compile() {
-    this.compilePath = CppCompilerService.compileCode(this.code);
-    return this.compilePath;
-  }
-
-  /**
-   * Compiles the C++ code from the source code if it's not been compiled, then runs the executable
-   * file created.
-   *
-   * @return A path to a txt file that has the outputted data.
-   */
-  public Path executeCode() {
-    // Compile the file if it's never been compiled successfully
-    if (compilePath == null) this.compile();
-    // If the compilation still wasn't successful return.
-    if (compilePath == null) return null;
-
-    try {
-      return CppCompilerService.executeFile(compilePath);
-    } catch (Exception e) {
-      return null;
-    }
-  }
-
   @Override
   public boolean equals(Object obj) {
     if (this == obj) return true;

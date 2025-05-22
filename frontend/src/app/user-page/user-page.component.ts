@@ -4,6 +4,7 @@ import { User, UserService } from '../services/user.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-user-page',
@@ -29,6 +30,27 @@ export class UserPageComponent implements OnInit {
       this.userId = Number(params["userId"]);
       this.loadUserData();
     });
+
+    // In your Angular component or service, add this test
+    function testBasicConnectivity() {
+      console.log("Testing basic HTTP connectivity to backend...");
+
+      // Test raw WebSocket connection
+      console.log("Testing raw WebSocket connectivity...");
+      const ws = new WebSocket('http://localhost:8080/ws');
+
+      ws.onopen = () => {
+        console.log("Raw WebSocket connected successfully!");
+        ws.close();
+      };
+
+      ws.onerror = (error) => {
+        console.error("Raw WebSocket connection failed:", error);
+      };
+    }
+
+    // Call this function
+    testBasicConnectivity();
   }
 
   public loadUserData() {

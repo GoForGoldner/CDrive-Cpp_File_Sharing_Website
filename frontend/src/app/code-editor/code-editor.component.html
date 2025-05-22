@@ -1,5 +1,14 @@
-<body>
+<div class="main">
     <ngx-monaco-editor [options]="editorOptions" [(ngModel)]="code"></ngx-monaco-editor>
-    <button id="save-button" (click) = "saveButtonClick()">Save</button>
-    <button id="run-button">Run</button>
-</body>
+    <button id="run-button" (click)="runButtonClick()">Run</button>
+    <dialog #terminal class="terminal" id="terminal">
+        <button id="close-button" (click) = "terminalRef.nativeElement.close()">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#000000"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg>
+        </button>
+        <pre id="terminal-output">{{webSocketService.output}}</pre>
+        <div class="input-line">
+            <pre>Terimnal $</pre>
+            <input id="terminal-input" [(ngModel)]="terminalInput" (keyup.enter)="inputEntered()" placeholder="Enter input...">
+        </div>
+    </dialog>
+</div>

@@ -1,111 +1,130 @@
 package com.goforgoldner.c_drive.service;
 
+import com.goforgoldner.c_drive.domain.entities.CppFileEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Service;
+
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.*;
 
 /**
  * A helper class designed to compile C++ files. This class has public methods to both compile and
  * execute C++ files.
  */
+@Service
 public class CppCompilerService {
 
-  /**
-   * Compiles C++ code and returns the path to the executable.
-   *
-   * @param sourceCode The C++ source code to compile.
-   * @return Path to the compiled executable, or null if compilation failed.
-   */
-  public static Path compileCode(String sourceCode) {
-    try {
-      Path tempDir = Files.createTempDirectory("cpp_compile");
-      Path sourceFile = tempDir.resolve("source.cpp");
-      Files.writeString(sourceFile, sourceCode);
-      Path outputFile = tempDir.resolve("output.exe");
-
-      boolean success = executeCompiler(sourceFile, outputFile);
-
-      return success ? outputFile : null;
-    } catch (Exception e) {
-      return null;
-    }
-  }
+  private final Map<String, Process> runningProcesses = new ConcurrentHashMap<>();
 
   /**
    * Generates a thread to call an executable file and return the output into a '.txt' file.
    * Currently, there is a 5-second maximum on the time of the thread to prevent issues with input
    * methods like "cin" causing the thread to wait infinitely.
    *
-   * @param executable Path to an exe / executable file.
    * @return A path to a '.txt' file, or null if the executable failed.
    */
-  public static Path executeFile(Path executable) {
+  public String executeFile(
+      CppFileEntity cppFileEntity, String sessionId, SimpMessagingTemplate message) {
+
     // Create a new thread
     try {
       ExecutorService executor = Executors.newSingleThreadExecutor();
       // Add a new thread
-      Future<Path> output = executor.submit(new ExecutableCallable(executable));
+      Future<String> output =
+          executor.submit(
+              new ExecutableAndCompileCallable(
+                  cppFileEntity, runningProcesses, sessionId, message));
 
       // Get the output from the executable and wait a maximum of 5 seconds.
-      return output.get(5, TimeUnit.SECONDS);
+      return output.get(50, TimeUnit.SECONDS);
     } catch (Exception e) {
       return null;
     }
   }
 
-  /**
-   * Compiles a file using g++.
-   *
-   * @param sourceFile The path to the C++ source file.
-   * @param outputFile The path to the output executable file.
-   * @return A boolean that represents if the process exited successfully.
-   * @throws IOException An I/O error occurs.
-   * @throws InterruptedException This thread was blocked by another thread.
-   */
-  private static boolean executeCompiler(Path sourceFile, Path outputFile)
-      throws IOException, InterruptedException {
-    ProcessBuilder processBuilder = createCompilerProcess(sourceFile, outputFile);
-    Process process = processBuilder.start();
+  public void sendMessageToTerminal(String sessionId, String line) {
+    if (!runningProcesses.containsKey(sessionId)) return;
 
-    captureProcessOutput(process);
-
-    int exitCode = process.waitFor();
-    return exitCode == 0;
+    Process process = runningProcesses.get(sessionId);
+    Thread messageThread = new SendMessageToProcessThread(process, line);
+    messageThread.start();
   }
 
-  /**
-   * Creates a proper ProcessBuilder with the compilation statement and error stream redirected into
-   * the standard output.
-   *
-   * @param sourceFile The path to the C++ source file.
-   * @param outputFile The path to the output executable file.
-   * @return A ProcessBuilder that can run the compilation process.
-   */
-  private static ProcessBuilder createCompilerProcess(Path sourceFile, Path outputFile) {
-    ProcessBuilder processBuilder =
-        new ProcessBuilder("g++", sourceFile.toString(), "-o", outputFile.toString());
-    processBuilder.redirectErrorStream(true);
-    return processBuilder;
+  private static class ProcessInputThread extends Thread {
+    private final Process process;
+    private final String sessionId;
+    private final SimpMessagingTemplate message;
+
+    public ProcessInputThread(Process process, String sessionId, SimpMessagingTemplate message) {
+      this.process = process;
+      this.sessionId = sessionId;
+      this.message = message;
+    }
+
+    @Override
+    public void run() {
+      readInputs();
+    }
+
+    private void readInputs() {
+      try {
+        InputStream is = process.getInputStream();
+
+        byte[] buffer = new byte[1024];
+        int bytesRead;
+
+        while (process.isAlive() || is.available() > 0) {
+          if (is.available() > 0) {
+            bytesRead = is.read(buffer, 0, Math.min(is.available(), buffer.length));
+            if (bytesRead > 0) {
+              String output = new String(buffer, 0, bytesRead, StandardCharsets.UTF_8);
+              System.out.println("Read output: " + output);
+              message.convertAndSend("/topic/compiler-output", output);
+            }
+          } else {
+            // Small sleep to prevent CPU spinning
+            Thread.sleep(50);
+          }
+        }
+      } catch (IOException | InterruptedException e) {
+        if (e instanceof InterruptedException) {
+          Thread.currentThread().interrupt();
+        }
+        message.convertAndSend("/topic/compiler-output",
+                "Error reading process output: " + e.getMessage());
+      }
+    }
   }
 
-  /**
-   * Gets any output information from standard output when the file is being compiled.
-   *
-   * @param process The process that is handling compilation of a file.
-   * @throws IOException An I/O error occurs.
-   */
-  private static void captureProcessOutput(Process process) throws IOException {
-    try (BufferedReader reader =
-        new BufferedReader(
-            new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
-      String line;
-      while ((line = reader.readLine()) != null) {
-        System.out.println(line);
+  private static class SendMessageToProcessThread extends Thread {
+    private final Process process;
+    private final String line;
+
+    public SendMessageToProcessThread(Process process, String line) {
+      this.process = process;
+      this.line = line;
+    }
+
+    @Override
+    public void run() {
+      sendMessage(line);
+    }
+
+    private void sendMessage(String line) {
+      // Write the line to the running process
+      try {
+        BufferedWriter writer =
+            new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
+        writer.write(line);
+        writer.newLine();
+        writer.flush();
+      } catch (IOException _) {
       }
     }
   }
@@ -113,38 +132,93 @@ public class CppCompilerService {
   /**
    * A class that contains a Callable function for executing a file. Currently, the class can only
    * handle inputs (no using 'std::cin').
-   *
-   * @param executable A path to the exe / executable file.
    */
-  private record ExecutableCallable(Path executable) implements Callable<Path> {
+  private static class ExecutableAndCompileCallable implements Callable<String> {
 
-    @Override
-    public Path call() throws TimeoutException, IOException, InterruptedException {
-      ProcessBuilder processBuilder = new ProcessBuilder(executable.toString());
-      processBuilder.redirectErrorStream(true);
+    private final Map<String, Process> runningProcesses;
+    private final String sessionId;
+    private final SimpMessagingTemplate message;
 
-      Process process = processBuilder.start();
+    private final Path tempDir;
+    private final Path sourceFile;
+    private final Path outputFile;
 
-      BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+    // Initialize temporary files and directory
+    {
+      try {
+        // Create a directory for compiling the C++ file
+        tempDir = Files.createTempDirectory("cpp_compile");
+        // Create a temporary source file
+        sourceFile = tempDir.resolve("source.cpp");
 
-      // Store the output lines
-      List<String> outputLines = new ArrayList<>();
-      String line;
-      while ((line = reader.readLine()) != null) {
-        outputLines.add(line);
-        System.out.println(line);
+        // Create a temporary executable file
+        outputFile = tempDir.resolve("output.exe");
+      } catch (IOException e) {
+        throw new RuntimeException("The temporary files or directory couldn't be created.");
       }
+    }
 
-      // Wait for the process to complete
-      int exitCode = process.waitFor();
-      System.out.println("Process exited with code: " + exitCode);
+    private ExecutableAndCompileCallable(
+        CppFileEntity cppFileEntity,
+        Map<String, Process> runningProcesses,
+        String sessionId,
+        SimpMessagingTemplate message)
+        throws RuntimeException {
+      this.runningProcesses = runningProcesses;
+      this.sessionId = sessionId;
+      this.message = message;
 
-      // Save the output to a file
-      Path output = Files.write(Paths.get("output.txt"), outputLines);
+      // Write the source_code into the source file
+      try {
+        Files.writeString(sourceFile, cppFileEntity.getCode());
+      } catch (IOException e) {
+        throw new RuntimeException("The source code couldn't be written into the file.");
+      }
+    }
 
-      System.out.println("Output saved to output.txt");
+    // TODO figure out what I'm actually returning
+    @Override
+    public String call() throws Exception {
 
-      return output;
+      // Create a process to compile the C++ file
+      Process compilationProcess = compilationProcessBuilder();
+
+      // Create a thread to run the compilation and send its response to the client
+      Thread compilationInputThread =
+          new ProcessInputThread(compilationProcess, sessionId, message);
+      // Start the thread
+      compilationInputThread.start();
+      // Wait for the thread to end
+      compilationInputThread.join();
+
+      // Create a process to execute the compiled file
+      Process executionProcess = executionProcessBuilder();
+
+      // Add the process to the list of currently running processes
+      runningProcesses.put(sessionId, executionProcess);
+
+      // Create a thread to run the execution and send its response to the client
+      Thread executionInputThread = new ProcessInputThread(executionProcess, sessionId, message);
+      executionInputThread.start();
+
+      return "";
+    }
+
+    private Process compilationProcessBuilder() throws IOException {
+      ProcessBuilder compilationProcessBuilder =
+          new ProcessBuilder("g++", sourceFile.toString(), "-o", outputFile.toString());
+      compilationProcessBuilder.redirectErrorStream(true);
+      compilationProcessBuilder.directory(tempDir.toFile());
+
+      return compilationProcessBuilder.start();
+    }
+
+    private Process executionProcessBuilder() throws IOException {
+      ProcessBuilder executionProcessBuilder = new ProcessBuilder(outputFile.toString());
+      executionProcessBuilder.redirectErrorStream(true);
+      executionProcessBuilder.directory(tempDir.toFile());
+
+      return executionProcessBuilder.start();
     }
   }
 }

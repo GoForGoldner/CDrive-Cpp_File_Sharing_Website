@@ -1,42 +1,124 @@
-body {
+$backgroundColor: #1e1e1e;
+$textColor: rgb(255, 255, 255);
+
+:host {
+    display: block;
+    background-color: $backgroundColor;
+    min-height: 100vh;
+    width: 100%;
+}
+
+.main {
+    background-color: $backgroundColor;
+    height: 92dvh;
+    outline: 1% solid green;
+}
+
+ngx-monaco-editor {
+    outline: 1% solid rgb(234, 0, 255);
+    padding: 1rem;
+    height: 100%;
     position: relative;
     margin: 0;
     padding: none;
     outline: none;
-    height: 42rem;
-    // background-color: #1e1e1e;
-}
-
-ngx-monaco-editor {
-    padding: 1rem;
-    height: 80%;
-}
-
-button {
-    position: absolute;
-    width: 5em;
-    font-size: 2rem;
-    color: black;
-    border: 0;
-    border-radius: 3rem;
-}
-
-#save-button {
-    right: 10%;
-    bottom: 35%;
-    background-color: rgb(0, 85, 0);
-
-    &:hover {
-        background-color: rgb(143, 206, 143);
-    }
 }
 
 #run-button {
-    right: 10%;
-    bottom: 25%;
-    background-color: rgb(123, 0, 0);
+    position: absolute;
+    width: 5em;
+    font-size: clamp(1rem, 3vw, 2rem);
+    border: 0;
+    border-radius: 3rem;
+
+    right: 5%;
+    bottom: 5%;
+    z-index: 5;
+}
+
+#terminal {
+    position: relative;
+    width: 60dvw;
+    height: 60dvh;
+    background-color: $backgroundColor;
+    border: none;
+    margin: none;
+}
+
+#close-button {
+    position: absolute;
+    right: 0;
+    top: 0;
+    padding: none; 
+    place-items: center;
+
+    background-color: rgb(113, 0, 0);
+    background-image: none;
+    color: black;
+    font-size: 1rem;
+    border-radius: 0;
 
     &:hover {
-        background-color: rgb(190, 66, 66);
+        background-color: rgb(164, 0, 0);
     }
+}
+
+pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+#terminal-output {
+    max-height: 52dvh;
+    flex: 1;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    margin: 0;
+    display: flex;
+
+    flex-direction: column-reverse;
+    color: $textColor;
+    font-size: 0.75rem;
+
+    &::-webkit-scrollbar {
+        width: 0.5rem;
+    }
+
+    &::-webkit-scrollbar-track {
+        background-color: $backgroundColor;
+        width: 0.5rem;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: rgba($textColor, 0.1);
+        width: 0.5rem;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+        background: rgba($textColor, 0.3);
+    }
+}
+
+.input-line {
+    display: flex;
+    margin-top: 1%;
+    width: 100%;
+
+    pre {
+        margin: 0;
+        padding-right: 1rem;
+        color: $textColor;
+    }
+}
+
+#terminal-input {
+    width: fit-content;
+    border: none;
+    outline: none;
+    color: $textColor;
+    background-color: transparent;
+    height: 1rem;
 }

@@ -45,6 +45,7 @@ export class AuthInterceptor implements HttpInterceptor {
             );
         } else {
             console.log('Unauthorized, redirecting to login');
+            this.authService.logout();
             this.router.navigate(['/sign-in']);
             return EMPTY;
         }
