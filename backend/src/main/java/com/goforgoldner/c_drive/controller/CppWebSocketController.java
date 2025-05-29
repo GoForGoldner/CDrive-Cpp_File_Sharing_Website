@@ -43,6 +43,7 @@ public class CppWebSocketController {
             return;
         }
 
+        System.out.println("WS DEBUG: About to call executeFile with sessionId: " + sessionId);
         cppCompilerService.executeFile(cppFile.get(), sessionId, messagingTemplate);
 
         System.out.println("WS DEBUG: WebSocket handler complete for session: " + sessionId);

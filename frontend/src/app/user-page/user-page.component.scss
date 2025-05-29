@@ -1,13 +1,36 @@
 nav {
     position: fixed;
+    justify-content: center;
+    align-items: end;
+    z-index: 100;
+}
+
+input {
+    padding: .5rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    width: max(9em, 27vw);
 }
 
 h3 {
     color: white;
 }
 
+user-icon {
+    position: absolute;
+    top: .6rem;
+    right: 1.5rem;
+}
+
+.middle-nav {
+    width: calc(100% - 22.5rem);
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+}
+
 button {
-    margin-right: 2rem;
+    margin-left: max(2rem, 10%);
 }
 
 .logo {
@@ -21,10 +44,32 @@ h2 {
 }
 
 .main {
-    padding-top: 10rem;
+    position: relative;
+    padding: 8rem 2rem 2rem 2rem;
     display: flex;
     flex-wrap: wrap;
+    gap: 3rem;
     place-content: center;
+}
+
+.main.drag-over::after {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    content: "Drop File!";
+    font: inherit;
+    font-size: 4rem;
+    font-weight: 700;
+    color: white;
+
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+
+    background-color: #19497aca;
 }
 
 body {
@@ -32,27 +77,164 @@ body {
     min-height: 100vh;
 }
 
-.column {
-    display: flex;
-    flex-direction: column;
-    gap: .5rem;
-    width: 20%;
-}
-
 .cpp-file {
-    padding: .5rem;
-    margin: .5rem;
+    // NOTE: The colors will be randomly set by a directive thats why theres no vars
+    position: relative;
+
+    $height: calc(clamp(12rem, 36vw, 24rem) + 0rem);
+    $width: clamp(10rem, 30vw, 20rem);
+
+    height: $height;
+    width: $width;
+
+    padding: .25rem;
     border-radius: 1rem;
-    max-height: 30rem;
+    outline: none;
+
+    user-select: none;
     overflow: hidden;
-    
+    box-shadow: rgba(0, 0, 0, 0.3) clamp(8px, 0.8vw, 16px) clamp(8px, 0.8vw, 16px) 4px 2px;
+
     pre {
-        font-size: .5rem;
-        color: #d1dbe4;
-        overflow: hidden;
+        position: absolute;
+        top: 2.5%;
+        left: 3%;
+
+        height: calc(#{$height} * 0.75);
+        width: calc(#{$width} * 0.93);
+
         margin-right: .5rem;
+        margin-left: .25rem;
         margin-bottom: 1rem;
+
+        font-size: clamp(.425rem, 0.6vw, 0.8rem);
+
+        color: #e5eaee;
+        overflow: hidden;
+
+        transition: filter 0.5s ease;
     }
 
-    background-color: #476f95;
+    .gradient-blur {
+        position: absolute;
+        top: 0;
+        left: 0;
+
+        height: 100%;
+        width: 100%;
+
+        opacity: 1;
+
+        background: linear-gradient(to bottom, rgba(var(--gradient-color-1), 0.25), rgba(var(--gradient-color-2), 0.25));
+
+        transition: filter 0.25s ease;
+    }
+
+    button {
+        position: absolute;
+        bottom: 5%;
+
+        width: 12em;
+        height: 3.2em;
+
+        padding: .5rem;
+        border-radius: 0.6rem;
+
+        font-size: clamp(.5rem, 1.5vw, 1rem);
+
+        background: linear-gradient(to right, rgba(var(--gradient-color-1), 0.4), rgba(var(--gradient-color-2), 0.4));
+    }
+
+    #trash-icon {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+
+        width: 2rem;
+        height: 2rem;
+        z-index: 100;
+
+        pointer-events: none;
+        display: none;
+    }
+
+    #trash-icon:hover {
+        background-color: rgba(184, 184, 184, 0.4);
+        border-radius: 100rem;
+        outline: 3px solid rgba(184, 184, 184, 0.4);
+    }
+
+    &::after {
+        content: "";
+
+        opacity: 0;
+
+        position: absolute;
+        top: 0;
+        left: 0;
+
+        height: $height;
+        width: $width;
+
+        padding: .25rem;
+        border-radius: 1rem;
+
+        background-color: rgba(255, 255, 255, 0.2);
+
+        transition: opacity 0.1s ease;
+    }
+
+    &:focus {
+        &::after {
+            opacity: 1;
+        }
+
+        .gradient-blur {
+            filter: blur(1rem);
+        }
+
+        pre {
+            filter: blur(0.25rem);
+        }
+
+        #trash-icon {
+            pointer-events: auto;
+            display: block;
+        }
+    }
+
+    background-color: #232323;
+}
+
+.cpp-file:active .cpp-file::after {
+    display: block;
+}
+
+@media screen and (max-width: 750px) {
+    nav {
+        height: 5.25rem;
+    }
+
+    .middle-nav {
+        width: 90%;
+    }
+
+    input {
+        font-size: 1rem;
+        width: 80%;
+    }
+
+    .import-button {
+        font-size: 1rem;
+    }
+
+    .user {
+        top: .9rem;
+
+        .user-settings {
+            top: 7.1rem;
+        }
+    }
+
+
 }

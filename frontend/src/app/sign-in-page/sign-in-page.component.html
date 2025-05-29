@@ -1,15 +1,36 @@
-<body>
+<div class="main">
     <div class="text">
-        <h1>Username: </h1>
-        <input id="username-input" [(ngModel)]="usernameText">
-        <h1>Password: </h1>
-        <input id="password-input" [(ngModel)]="passwordText">
-        <div class="buttons">
-            <button id="sign-in" (click)="signIn()">Sign In</button>
-            <button id="log-in" (click)="logIn()">Log In</button>
+        <form [formGroup]="loginForm">
+            <div class="logo">CDrive</div>
+
+            <h1>Username:</h1>
+            <input required type="text" id="username-input" formControlName="username" minlength="8">
+
+            <h1>Password:</h1>
+            <input required type="password" id="password-input" formControlName="password" minlength="8">
+
+            <button type="button" class="gradient-button" (click)="logIn()">Log In</button>
+        </form>
+
+        <div class="sign-up">
+            <p>Don't have an account? Sign Up!</p>
+            <button type="button" class="default-button" (click)="signIn()">Sign Up</button>
         </div>
+
+        <dialog #usernameTakenError id="username-error" class="error">
+            The username is already taken. Please try again.
+        </dialog>
+
+        <dialog #usernameShortError id="username-error" class="error">
+            The username is too short. Please try again.
+        </dialog>
+
+        <dialog #loginError id="login-error" class="error">
+            That usename and password combination wasn't found. Please try again.
+        </dialog>
+
+        <dialog #passwordShortError id="password-error" class="error">
+            The password is too short. Please try again.
+        </dialog>
     </div>
-    <div class="video-wrapper">
-        <video id="background-video" src="JellyfishBackground.mp4" [muted]="true" autoplay loop></video>
-    </div>
-</body>
+</div>

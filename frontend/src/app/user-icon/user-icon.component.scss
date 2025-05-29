@@ -1,0 +1,67 @@
+.user {
+    outline: none;
+    position: absolute;
+    right: 1.5rem;
+
+    width: 3rem;
+    height: 3rem;
+
+    .user-settings {
+        position: absolute;
+        top: 5rem;
+        right: 0;
+
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.1s ease-in;
+
+        display: grid;
+        width: 12rem;
+        height: 10rem;
+
+        border-radius: .5rem;
+        padding: 1.5rem;
+
+        background-color: white;
+
+        place-items: center;
+
+        list-style: none;
+        margin: 0;
+        padding: .5rem;
+
+        li:nth-child(1) button {
+            position: absolute;
+            top: 10%;
+        }
+
+        li:nth-child(2) button {
+            position: absolute;
+            top: 55%;
+        }
+
+        button {
+            width: 90%;
+            height: 35%;
+            right: 5%;
+        }
+    }
+
+    &:focus, &:hover {
+        & .user-settings {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        img {
+            outline: 5px solid rgba(184, 184, 184, 0.696);
+        }
+    }
+}
+
+#user-icon {
+    position: absolute;
+    width: 3rem;
+    background-color: #D9D9D9;
+    border-radius: 10rem;
+}

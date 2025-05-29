@@ -1,56 +1,45 @@
-import { Component, ElementRef, ViewChild, OnInit, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ElementRef, ViewChild, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CppFile } from '../services/cpp-file.service';
 import { User, UserService } from '../services/user.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
+import { RandomGradientDirective } from '../directives/random-gradient.directive';
+import { FormsModule } from '@angular/forms';
+import { UserIconComponent } from '../user-icon/user-icon.component';
 import { AuthService } from '../services/auth.service';
+
 
 @Component({
   selector: 'app-user-page',
-  imports: [CommonModule],
+  imports: [CommonModule, RandomGradientDirective, FormsModule, UserIconComponent],
   templateUrl: './user-page.component.html',
-  styleUrl: './user-page.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrl: './user-page.component.scss'
 })
 export class UserPageComponent implements OnInit {
-  constructor(private userService: UserService, private activatedRoute: ActivatedRoute,
+  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+  public searchStr: string = "";
+
+  constructor(public authService: AuthService, private userService: UserService, private activatedRoute: ActivatedRoute,
     private router: Router, private changeDetector: ChangeDetectorRef
   ) {
-    this.activatedRoute = inject(ActivatedRoute);
   }
 
-  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
-
   private userId: number = 0;
-  public currentUser!: User;
+  public currentUser: User = new User(-1, "", "", []);
 
   ngOnInit(): void {
     this.activatedRoute.params.subscribe(params => {
       this.userId = Number(params["userId"]);
       this.loadUserData();
     });
+  }
 
-    // In your Angular component or service, add this test
-    function testBasicConnectivity() {
-      console.log("Testing basic HTTP connectivity to backend...");
-
-      // Test raw WebSocket connection
-      console.log("Testing raw WebSocket connectivity...");
-      const ws = new WebSocket('http://localhost:8080/ws');
-
-      ws.onopen = () => {
-        console.log("Raw WebSocket connected successfully!");
-        ws.close();
-      };
-
-      ws.onerror = (error) => {
-        console.error("Raw WebSocket connection failed:", error);
-      };
-    }
-
-    // Call this function
-    testBasicConnectivity();
+  public get filteredCppFiles() {
+    return this.currentUser?.cppFiles
+      ?.slice()  // Create copy
+      .reverse() // Reverse the copy
+      .filter(file => file.filename.startsWith(this.searchStr)) || [];
   }
 
   public loadUserData() {
@@ -65,6 +54,18 @@ export class UserPageComponent implements OnInit {
     });
   }
 
+  public deleteCppFile(cppFile: CppFile) {
+    this.userService.removeCppFileFromUser(this.currentUser.userId, cppFile.id ?? -1).subscribe({
+      next: (response) => {
+        console.log("Updating Cpp files after deleting one!");
+        this.currentUser.cppFiles = response.cppFiles;
+      },
+      error: (err) => {
+        throw new Error(err);
+      }
+    });
+  }
+
   public fileButtonClick() {
     console.log("Files button clicked!");
     this.fileInput.nativeElement.click();
@@ -72,6 +73,37 @@ export class UserPageComponent implements OnInit {
 
   public cppFileClick(cppFile: CppFile) {
     this.router.navigate(['/user/' + this.userId + '/files/' + cppFile.id]);
+  }
+
+  public onDragEnter(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    (event.currentTarget as HTMLElement).classList.add('drag-over');
+    console.log("added drag-over");
+  }
+
+  public async onDragDrop(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    (event.currentTarget as HTMLElement).classList.remove('drag-over');
+     console.log("removed drag-over");
+
+    // Create a fake event to send to the input form
+    const fakeEvent = {
+      target: {
+        files: event.dataTransfer?.files
+      }
+    } as unknown as Event;
+
+    // Call your existing method
+    await this.fileChange(fakeEvent);
+  }
+
+  public onDragLeave(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    (event.currentTarget as HTMLElement).classList.remove('drag-over');
+    console.log("removed drag-over");
   }
 
   async fileChange(event: Event) {
@@ -103,9 +135,7 @@ export class UserPageComponent implements OnInit {
       if (results.length > 0) {
         // Get the last user given from the database
         this.currentUser = results[results.length - 1];
-
-        // Run change detection after it's updated
-        this.changeDetector.markForCheck();
+        this.changeDetector.detectChanges();
       }
     } catch (error) {
       console.error('Error adding files:', error);
@@ -124,7 +154,6 @@ export class UserPageComponent implements OnInit {
 
       cppFiles.push(new CppFile(file.name, code));
     }
-
     return cppFiles;
   }
 

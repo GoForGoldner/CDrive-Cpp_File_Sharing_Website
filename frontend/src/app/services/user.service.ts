@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Optional } from '@angular/core';
 import { CppFile } from './cpp-file.service';
 import { HttpClient } from '@angular/common/http';
 import { catchError, map, Observable, of, throwError } from 'rxjs';
@@ -23,15 +23,12 @@ export class UserService {
   public urlLogin: string = environment.API_BASE_URL + "/api/login";
 
   logInUser(userInfo: User): Observable<LoginRequest> {
-    return this.http.post<LoginRequest>(this.urlLogin, userInfo).pipe(
-      map((response: LoginRequest) => {
-        return response;
-      }),
-      catchError((error: any) => {
-        console.error('Error loading user data:', error);
-        return throwError(() => error);
-      })
-    );
+    let requestBody = {
+      username: userInfo.username,
+      password: userInfo.password
+    };
+
+    return this.http.post<LoginRequest>(this.urlLogin, requestBody);
   }
 
   addUser(userInfo: User): Observable<LoginRequest> {
@@ -42,7 +39,6 @@ export class UserService {
         return response;
       }),
       catchError((error: any) => {
-        console.error('Error loading user data:', error);
         return throwError(() => error);
       })
     );
@@ -57,8 +53,7 @@ export class UserService {
         return new User(response.id, response.username, response.password, response.cpp_files);
       }),
       catchError((error) => {
-        console.error('Error loading user data:', error);
-        return throwError(() => error);
+        return new Observable<any>();
       })
     );
   }
@@ -76,22 +71,20 @@ export class UserService {
         return new User(response.id, response.username, response.password, response.cpp_files);
       }),
       catchError((error: any) => {
-        console.error('Error loading user data:', error);
-        return throwError(() => error);
+        return new Observable<any>();
       })
     );
   }
 
-  removeCppFileFromUser(userId: number, cppFileId: number) {
+  removeCppFileFromUser(userId: number, cppFileId: number): Observable<User> {
     let apiUrl: string = this.urlStart + "/" + userId + "/files/" + cppFileId;
 
     return this.http.delete<any>(apiUrl).pipe(
       map((response: any) => {
-        return
+        return new User(response.id, response.username, response.password, response.cpp_files);
       }),
       catchError((error: any) => {
-        console.error('Error loading user data:', error);
-        return throwError(() => error);
+        return new Observable<any>();
       })
     );
   }

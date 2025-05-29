@@ -1,9 +1,7 @@
 // websocket.service.ts
 import { Injectable, OnDestroy } from '@angular/core';
-import { RxStomp, RxStompState } from '@stomp/rx-stomp';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { environment } from '../../environments/environment';
+import { RxStomp } from '@stomp/rx-stomp';
+import { BehaviorSubject } from 'rxjs';
 import { rxStompServiceFactory } from './rx-stomp-service-factory';
 
 @Injectable({
@@ -32,17 +30,9 @@ export class WebSocketService implements OnDestroy {
     // Subscribe to compiler output
     this.rxStompService.watch('/topic/compiler-output').subscribe((message: any) => {
       console.log('Received compiler output:', message.body);
-      this.output += message.body + "\n";
-    });
-
-    this.rxStompService.watch('/user/queue/compiler-output').subscribe((message: any) => {
-      console.log('Received compiler output:', message.body);
-      this.output += message.body + "\n";
-    });
-
-    this.rxStompService.watch('/user/queue/errors').subscribe((message: any) => {
-      console.log('Received error output:', message.body);
-      this.output += message.body + "\n";
+      if (message.body != "") {
+        this.output += message.body;
+      }
     });
   }
 

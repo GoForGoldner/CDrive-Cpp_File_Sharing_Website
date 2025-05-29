@@ -1,44 +1,78 @@
 nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
     .logo {
-        position: absolute;
-        top: 1rem;
-        left: 1.5rem;
+        margin-left: 1.5rem;
     }
+
+    button {
+        margin-right: 1.5rem;
+    }
+
+    border: 1px solid rgb(193, 193, 193);
+    border-top: none;
+    border-left: none;
+    border-right: none;
 }
 
-button {
-    margin-right: 2rem;
-}
 
 main {
     display: flex;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+    align-items: center;
+
+    min-height: 30rem;
 }
 
+span {
+    display: block;
+
+    font-family: inherit;
+    font-weight: 700;
+    font-size: clamp(2.25rem, 5vw, 3.5rem);
+    width: 16ch;
+    margin: 0;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+p {
+    margin: 0;
+    font-size: clamp(1rem, 2.2vw, 1.5rem);
+    color: rgb(93, 93, 93);
+}
+
+
 #knight-gif {
-
-    // padding-right: 3rem;
-    // padding-top: 5rem;
-    clip-path: inset(2rem 0rem 1rem 8rem);
-
-    width: 50rem;
-    border: 1px solid green;
+    display: none;
+    flex: 0;
+    width: 35%;
+    object-fit: contain;
 }
 
 .text-section {
     padding-top: 3rem;
-    padding-left: 7rem;
 
     .logo {
         font-size: 2em;
     }
 
-    h1 {
-        width: 16ch;
-        padding-top: 1rem;
+    p {
         padding-bottom: 1rem;
     }
 
-    p {
-        padding-bottom: 1rem;
+    padding-bottom: 5rem;
+}
+
+@media screen and (min-width: 1180px) {
+    #knight-gif {
+        display: block;
+    }
+
+    .text-section {
+        padding-left: 5rem;
     }
 }

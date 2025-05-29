@@ -53,6 +53,11 @@ public class UserController {
       return new ResponseEntity<>(HttpStatus.EXPECTATION_FAILED);
     userEntity.setPassword(bCryptPasswordEncoder.encode(userEntity.getPassword()));
 
+    // Ensure the username isn't already in the database
+    if (userService.getUserByUsername(userDto.getUsername()).isPresent()) {
+      return new ResponseEntity<>(HttpStatus.CONFLICT);
+    }
+
     // Clear the current userEntity list (should be empty)
     userEntity.getCppFiles().clear();
     for (CppFileDTO cppFileDTO : userDto.getCppFiles()) {
@@ -147,7 +152,7 @@ public class UserController {
 
     Optional<UserEntity> userEntity = userService.removeCppFile(userId, cppFileEntity.get());
 
-    return entityToResponse(userEntity, HttpStatus.NO_CONTENT);
+    return entityToResponse(userEntity, HttpStatus.OK);
   }
 
   private ResponseEntity<UserDTO> entityToResponse(

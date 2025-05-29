@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root'
@@ -6,7 +7,7 @@ import { Injectable } from '@angular/core';
 export class AuthService {
   private jwtToken: string = "";
 
-  constructor() { }
+  constructor(private router: Router) { }
 
   public setToken(token: string) {
     this.jwtToken = token;
@@ -30,7 +31,11 @@ export class AuthService {
   }
 
   public logout(): void {
+    console.log("Logging user out.");
+
     this.jwtToken = '';
     localStorage.removeItem('jwtToken');
+
+    this.router.navigate(['/sign-in']);
   }
 }

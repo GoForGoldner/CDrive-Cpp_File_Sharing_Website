@@ -1,12 +1,13 @@
-import { Component, ElementRef, Injectable, ViewChild } from '@angular/core';
+import { Component, ElementRef, ViewChild, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
 import { CppFile, CppFileService } from '../services/cpp-file.service';
 import { Observable } from 'rxjs';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { WebSocketService } from '../services/web-socket.service';
 import { ChangeDetectorRef } from '@angular/core';
+import { UserIconComponent } from "../user-icon/user-icon.component";
 declare const monaco: any;
 
 @Component({
@@ -15,12 +16,13 @@ declare const monaco: any;
   imports: [
     CommonModule,
     FormsModule,
-    MonacoEditorModule
+    MonacoEditorModule,
+    UserIconComponent
   ],
   templateUrl: './code-editor.component.html',
   styleUrl: './code-editor.component.scss'
 })
-export class CodeEditorComponent {
+export class CodeEditorComponent implements OnInit, OnDestroy{
 
   @ViewChild("terminal") terminalRef!: ElementRef<HTMLDialogElement>;
 
@@ -28,19 +30,20 @@ export class CodeEditorComponent {
   private userId: number;
   private fileId: number;
 
-  public editorOptions = { theme: 'vs-dark', language: 'cpp' };
+  public editorOptions = { theme: 'vs-dark', language: 'cpp', fontSize: 20  };
   public code!: string;
   private cppFile!: CppFile;
 
   public constructor(private cppFileService: CppFileService,
     public webSocketService: WebSocketService,
-    private activatedRoute: ActivatedRoute,
-    private cd: ChangeDetectorRef) {
+    private router: Router,
+    private cd: ChangeDetectorRef,
+    private activatedRoute: ActivatedRoute) {
     this.userId = Number(activatedRoute.snapshot.params["userId"]);
     this.fileId = Number(activatedRoute.snapshot.params["fileId"]);
   }
 
-  ngOnInit() {
+  ngOnInit(): void {
     console.log("Atttempting to fetch data from backend...");
 
     let getCppFile: Observable<CppFile> = this.cppFileService.getCppFile(this.fileId);
@@ -54,6 +57,10 @@ export class CodeEditorComponent {
     );
 
     console.log("ngoninit finished.")
+  }
+
+  ngOnDestroy(): void {
+    this.webSocketService.disconnect();
   }
 
   public runButtonClick() {
@@ -82,9 +89,8 @@ export class CodeEditorComponent {
     this.cd.detectChanges();
   }
 
-  //when the run button is clicked, 
-  // save the new code to the database
-  // tell the backend to execute the code, 
-  // and mb show any errors that the code may have
+  public returnToUserPage() {
+    this.router.navigate(["/user/", this.userId]);
+  }
 }
 
