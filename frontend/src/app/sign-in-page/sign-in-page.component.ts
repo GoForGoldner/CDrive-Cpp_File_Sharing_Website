@@ -67,8 +67,13 @@ export class SignInPageComponent {
         this.router.navigate(['/user/' + requestBody.user.id]);
       },
       error: (error) => {
-        console.log("Couldn't find user, showing error message.");
-        this.loginErrorModel.nativeElement.showModal();
+        if (error.status == 409) {
+          console.log("Couldn't find user, showing error message.");
+          this.loginErrorModel.nativeElement.showModal();
+        } else {
+          this.authService.logout();
+          this.logIn();
+        }
       }
     });
   }

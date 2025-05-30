@@ -1,0 +1,8 @@
+{
+  "backend": {
+    "image": "590371878106.dkr.ecr.us-east-1.amazonaws.com/cdrive:backend",
+    "ports": {
+      "8080": "HTTP"
+    }
+  }
+}

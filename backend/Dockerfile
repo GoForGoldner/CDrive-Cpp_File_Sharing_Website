@@ -8,12 +8,12 @@ RUN mvn package -DskipTests
 FROM openjdk:24-slim
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
-RUN apt-get update && apt-get install -y g++ make coreutils
-EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
-
 RUN apt-get update && apt-get install -y \
     g++ \
+    make \
+    coreutils \
     build-essential \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "app.jar"]

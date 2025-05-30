@@ -42,6 +42,11 @@ public class UserController {
     this.jwtService = jwtService;
   }
 
+  @GetMapping("/health")
+  public ResponseEntity<String> health() {
+    return ResponseEntity.ok("OK");
+  }
+
   // TODO change to /sign-in
   @PostMapping("/user")
   public ResponseEntity<LoginRequestDTO> addUser(@RequestBody UserDTO userDto) {
