@@ -2,6 +2,9 @@
 
 A full-stack C++ IDE and file management web application built with Angular, Spring Boot, PostgreSQL, and Docker. Features real-time code editing, compilation, and execution capabilities with a responsive drag-and-drop interface.
 
+**🔗 [Website Link](https://cdrivecpp.netlify.app/)**
+Status: Live! 🎬
+
 **🔗 [GitHub Repository](https://github.com/GoForGoldner/CDrive-Cpp_File_Sharing_Website)**
 
 ![CDrive Demo Video](CDriveCurrentDemo.gif)
@@ -23,6 +26,8 @@ A full-stack C++ IDE and file management web application built with Angular, Spr
 - **Real-time**: WebSockets with STOMP protocol
 - **Containerization**: Docker & Docker Compose
 - **Code Editor**: Monaco Editor integration
+- **Online Database**: AWS Lightsail for backend
+- **Hosting Service**: Netlify for frontend
 
 ## 📋 Prerequisites
 
