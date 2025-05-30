@@ -4,7 +4,7 @@
             <button class="default-button" (click)="returnToUserPage()">Back</button>
             <button class="gradient-button" (click)="runButtonClick()">Run</button>
         </div>
-        <user-icon/>
+        <user-icon />
     </nav>
     <ngx-monaco-editor [options]="editorOptions" [(ngModel)]="code"></ngx-monaco-editor>
 
@@ -18,8 +18,8 @@
         <pre id="terminal-output">{{webSocketService.output}}</pre>
         <div class="input-line">
             <pre>Terimnal $</pre>
-            <input id="terminal-input" [(ngModel)]="terminalInput" (keyup.enter)="inputEntered()"
-                placeholder="Enter input...">
+            <input id="terminal-input" [(ngModel)]="terminalInput" (keydown.enter)="inputEntered()" type="text"
+                autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Enter input...">
         </div>
     </dialog>
 </div>
