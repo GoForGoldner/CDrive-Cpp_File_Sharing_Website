@@ -14,6 +14,9 @@ public class CorsConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
 
+        // Allow all origins for current domain
+        config.addAllowedOrigin("https://cdrivecpp.netlify.app");
+
         // Allow all origins for development
         config.addAllowedOrigin("http://localhost");
         config.addAllowedOrigin("http://localhost:4200");

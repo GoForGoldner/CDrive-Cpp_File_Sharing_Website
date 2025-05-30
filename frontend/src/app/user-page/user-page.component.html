@@ -20,7 +20,7 @@
 
         <ng-template #files>
             <div tabindex="0" class="cpp-file" (dblclick)="cppFileClick(cppFile)"
-                *ngFor="let cppFile of filteredCppFiles" randomGradient gradientKey={{cppFile.id}}>
+                *ngFor="let cppFile of filteredCppFiles" randomGradient [gradientKey]="cppFile.id?.toString() || 'default'">
                 <pre>{{cppFile.source_code}}</pre>
                 <div class="gradient-blur"></div>
                 <button class="gradient-button" tabindex="-1">{{cppFile.filename}}</button>

@@ -1,10 +1,10 @@
-import { Directive, ElementRef, OnInit, input } from '@angular/core';
+import { AfterViewInit, Directive, ElementRef, input } from '@angular/core';
 
 @Directive({
   selector: '[randomGradient]',
   standalone: true
 })
-export class RandomGradientDirective implements OnInit {
+export class RandomGradientDirective implements AfterViewInit {
   gradientKey = input.required<string>();
 
   constructor(private elementRef: ElementRef) { }
@@ -19,12 +19,13 @@ export class RandomGradientDirective implements OnInit {
     '255,0,144'
   ];
 
-  ngOnInit() {
+  ngAfterViewInit() {
     // If the colors are already set return
     if (this.elementRef.nativeElement.dataset.gradientSet) return;
 
     // Attempt to get the colors from the storage
-    const storageKey = `gradient-${this.gradientKey}`;
+    const gradientKeyValue = this.gradientKey();
+    const storageKey = `gradient-${gradientKeyValue}`;
     let colors = JSON.parse(localStorage.getItem(storageKey) || 'null');
 
     // If colors isn't already in the storage

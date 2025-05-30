@@ -32,6 +32,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
   @Override
   public void registerStompEndpoints(StompEndpointRegistry registry) {
+    // For the current domain
+    registry.addEndpoint("/ws").setAllowedOrigins("https://cdrivecpp.netlify.app");
+
     registry.addEndpoint("/ws").setAllowedOrigins("http://localhost");
 
     // NOTE: Uncomment when using "ng serve"

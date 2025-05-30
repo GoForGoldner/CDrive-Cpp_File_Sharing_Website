@@ -1,4 +1,4 @@
 export const environment = {
     production: false,
-    API_BASE_URL: process.env['http://localhost:8080']
+    API_BASE_URL: 'https://cdrive.emsrh5c2v4p86.us-east-1.cs.amazonlightsail.com'
 };
