@@ -1,6 +1,8 @@
 package com.goforgoldner.c_drive.domain.dto;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.goforgoldner.c_drive.domain.entities.CppFileEntity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,6 +10,8 @@ import java.util.List;
 public class UserDTO {
   private Long id;
   private String username;
+
+  //@JsonManagedReference
   @JsonProperty("cpp_files")
   private List<CppFileDTO> cppFiles;
   private String password;
@@ -51,5 +55,15 @@ public class UserDTO {
 
   public void setPassword(String password) {
     this.password = password;
+  }
+
+  public void addCppFile(CppFileDTO cppFileDTO) {
+    cppFiles.add(cppFileDTO);
+    cppFileDTO.setUserId(id);
+  }
+
+  public void removeCppFile(CppFileDTO cppFileDTO) {
+    cppFiles.remove(cppFileDTO);
+    cppFileDTO.setUserId(-1L);
   }
 }

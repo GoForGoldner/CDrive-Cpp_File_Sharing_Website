@@ -1,10 +1,12 @@
 package com.goforgoldner.c_drive.config;
 
-import com.goforgoldner.c_drive.domain.entities.CppFileEntity;
-import com.goforgoldner.c_drive.domain.entities.UserEntity;
-
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.goforgoldner.c_drive.domain.entities.CodeEntryEntity;
+import com.goforgoldner.c_drive.domain.entities.CppFileEntity;
+import com.goforgoldner.c_drive.domain.entities.UserEntity;
 
 public class UserDataUtil {
   public static UserEntity newTestUserEntity() {
@@ -13,15 +15,18 @@ public class UserDataUtil {
 
   public static CppFileEntity newTestCppFileEntity() {
 
-    return new CppFileEntity(
-        2L,
-        "test.cpp",
+    CppFileEntity temp = new CppFileEntity("test.cpp"); // Note had 2L for id if this causes any bugs
+
+    temp.getCodeEntries().add(new CodeEntryEntity(
         "#include <iostream>\n"
             + "\n"
             + "int main() {\n"
             + "    std::cout << \"Minimal C++ program with cout!\" << std::endl;\n"
             + "    return 0;\n"
-            + "}");
+            + "}",
+        LocalDateTime.of(2025, 6, 15, 3, 24, 10)));
+
+    return temp;
   }
 
   public static UserEntity newTestPartialUserEntity() {
@@ -32,9 +37,10 @@ public class UserDataUtil {
 
   public static List<CppFileEntity> newTestUserFiles() {
     List<CppFileEntity> testUserFiles = new ArrayList<>();
-    testUserFiles.add(
-        new CppFileEntity(
-            "helloWorld.cpp",
+
+    testUserFiles.add(new CppFileEntity("helloWorld.cpp"));
+    testUserFiles.get(0).getCodeEntries().add(
+        new CodeEntryEntity(
             "\n"
                 + "#include <iostream>\n"
                 + "\n"
@@ -44,15 +50,18 @@ public class UserDataUtil {
                 + "    std::cout << \"cout is used for standard output in C++.\" << std::endl;\n"
                 + "    \n"
                 + "    return 0;\n"
-                + "}"));
+                + "}",
+            LocalDateTime.of(2025, 6, 13, 8, 0, 3)));
 
     testUserFiles.add(cppFileEntityToRemove());
+
     return testUserFiles;
   }
 
   public static CppFileEntity cppFileEntityToRemove() {
-    return new CppFileEntity(
-        "numberPrinter.cpp",
+    CppFileEntity temp = new CppFileEntity("numberPrinter.cpp");
+
+    temp.getCodeEntries().add(new CodeEntryEntity(
         "#include <iostream>\n"
             + "\n"
             + "int main() {\n"
@@ -68,6 +77,9 @@ public class UserDataUtil {
             + "    std::cout << \"The sum of 10 and 15 is: \" << sum << std::endl;\n"
             + "    \n"
             + "    return 0;\n"
-            + "}");
+            + "}",
+        LocalDateTime.of(2025, 6, 15, 8, 0, 5)));
+
+    return temp;
   }
 }

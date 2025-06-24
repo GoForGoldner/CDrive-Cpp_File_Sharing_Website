@@ -1,69 +1,86 @@
-import { Component, ElementRef, ViewChild, OnInit, ChangeDetectorRef } from '@angular/core';
-import { CppFile } from '../services/cpp-file.service';
-import { User, UserService } from '../services/user.service';
-import { ActivatedRoute, Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
-import { firstValueFrom } from 'rxjs';
-import { RandomGradientDirective } from '../directives/random-gradient.directive';
-import { FormsModule } from '@angular/forms';
-import { UserIconComponent } from '../user-icon/user-icon.component';
-import { AuthService } from '../services/auth.service';
+import {ChangeDetectorRef, Component, ElementRef, inject, OnInit, ViewChild} from '@angular/core';
+import {CppFileBody, UserService} from '../services/user.service';
+import {ActivatedRoute, Router} from '@angular/router';
+import {CommonModule} from '@angular/common';
+import {RandomGradientDirective} from '../directives/random-gradient.directive';
+import {FormsModule} from '@angular/forms';
+import {UserIconComponent} from '../user-icon/user-icon.component';
+import {AuthService} from '../services/auth.service';
+import {CppFileResponse} from '../json-responses/cpp-file-response';
+import {EditorComponent} from 'ngx-monaco-editor-v2';
 
 
 @Component({
   selector: 'app-user-page',
-  imports: [CommonModule, RandomGradientDirective, FormsModule, UserIconComponent],
+  imports: [CommonModule, RandomGradientDirective, FormsModule, UserIconComponent, EditorComponent],
   templateUrl: './user-page.component.html',
-  styleUrl: './user-page.component.scss'
+  styleUrl: './user-page.component.scss',
+  standalone: true
 })
 export class UserPageComponent implements OnInit {
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
   public searchStr: string = "";
 
-  constructor(public authService: AuthService, private userService: UserService, private activatedRoute: ActivatedRoute,
-    private router: Router, private changeDetector: ChangeDetectorRef
+  public editorOptions = {
+    theme: 'vs-dark',
+    language: 'cpp',
+    fontSize: 8,
+    readOnly: true,
+    lineNumbers: 'on',
+    minimap: {enabled: false},
+    scrollBeyondLastLine: false,
+    wordWrap: 'on',
+    contextmenu: false,
+    links: false,
+    renderLineHighlight: 'none',
+    scrollbar: {
+      vertical: 'hidden',
+      horizontal: 'hidden',
+      handleMouseWheel: false,
+      alwaysConsumeMouseWheel: false
+    },
+    smoothScrolling: false,
+    overviewRulerLanes: 0,
+    hideCursorInOverviewRuler: true
+  };
+
+  private userService = inject(UserService);
+  public userId = this.userService.id;
+  public username = this.userService.username;
+  public password = this.userService.password;
+  public cppFiles = this.userService.cppFiles;
+
+  constructor(public authService: AuthService, private activatedRoute: ActivatedRoute,
+              private router: Router, private changeDetector: ChangeDetectorRef
   ) {
   }
 
-  private userId: number = 0;
-  public currentUser: User = new User(-1, "", "", []);
+  get filteredCppFiles(): CppFileResponse[] {
+    let filteredFiles: CppFileResponse[] = this.cppFiles()
+      ?.slice()  // Create copy
+      .reverse() // Reverse the copy
+      // Filters the files by the search string
+      .filter(file => file.filename.startsWith(this.searchStr)) || [];
+
+    // Sort each code version by the date
+    filteredFiles.forEach(cppFile => {
+      cppFile.source_code.sort((a, b) => {
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
+      });
+    });
+
+    return filteredFiles;
+  }
 
   ngOnInit(): void {
     this.activatedRoute.params.subscribe(params => {
-      this.userId = Number(params["userId"]);
-      this.loadUserData();
+      const tempUserId = Number(params["userId"]);
+      this.userService.getUser(tempUserId);
     });
   }
 
-  public get filteredCppFiles() {
-    return this.currentUser?.cppFiles
-      ?.slice()  // Create copy
-      .reverse() // Reverse the copy
-      .filter(file => file.filename.startsWith(this.searchStr)) || [];
-  }
-
-  public loadUserData() {
-    this.userService.getUser(this.userId).subscribe({
-      next: (response) => {
-        this.currentUser = response;
-        this.changeDetector.markForCheck();
-      },
-      error: (err) => {
-        throw new Error(err);
-      }
-    });
-  }
-
-  public deleteCppFile(cppFile: CppFile) {
-    this.userService.removeCppFileFromUser(this.currentUser.userId, cppFile.id ?? -1).subscribe({
-      next: (response) => {
-        console.log("Updating Cpp files after deleting one!");
-        this.currentUser.cppFiles = response.cppFiles;
-      },
-      error: (err) => {
-        throw new Error(err);
-      }
-    });
+  public deleteCppFile(cppFile: CppFileResponse) {
+    this.userService.removeCppFileFromUser(cppFile.id);
   }
 
   public fileButtonClick() {
@@ -71,8 +88,8 @@ export class UserPageComponent implements OnInit {
     this.fileInput.nativeElement.click();
   }
 
-  public cppFileClick(cppFile: CppFile) {
-    this.router.navigate(['/user/' + this.userId + '/files/' + cppFile.id]);
+  public cppFileClick(cppFile: CppFileResponse) {
+    this.router.navigate(['/user/' + this.userId() + '/files/' + cppFile.id]);
   }
 
   public onDragEnter(event: DragEvent) {
@@ -86,7 +103,7 @@ export class UserPageComponent implements OnInit {
     event.preventDefault();
     event.stopPropagation();
     (event.currentTarget as HTMLElement).classList.remove('drag-over');
-     console.log("removed drag-over");
+    console.log("removed drag-over");
 
     // Create a fake event to send to the input form
     const fakeEvent = {
@@ -119,41 +136,24 @@ export class UserPageComponent implements OnInit {
     const cppFiles = Array.from(files).filter(file => file.name.endsWith('.cpp'));
 
     console.log("Files button converting file imports to CppFile objects...");
-    let cppArray: CppFile[] = await this.processImportedCppFiles(cppFiles);
+    let cppArray: CppFileBody[] = await this.processImportedCppFiles(cppFiles);
 
     console.log("Adding CppFiles to user...");
-
-    // A list of the async addFiles that need to be called
-    const requests: Promise<User>[] = cppArray.map(cppFile =>
-      firstValueFrom(this.userService.addCppFileToUser(this.userId, cppFile))
-    );
-
-    try {
-      // Wait for all the requests to complete
-      const results = await Promise.all(requests);
-
-      if (results.length > 0) {
-        // Get the last user given from the database
-        this.currentUser = results[results.length - 1];
-        this.changeDetector.detectChanges();
-      }
-    } catch (error) {
-      console.error('Error adding files:', error);
-    } finally {
-      input.value = '';
-    }
+    this.userService.addCppFilesToUser(cppArray);
   }
 
-  private async processImportedCppFiles(files: File[]): Promise<CppFile[]> {
-    let cppFiles: CppFile[] = [];
+  private async processImportedCppFiles(files: File[]): Promise<CppFileBody[]> {
+    let cppFiles: CppFileBody[] = [];
 
     for (const file of files) {
       const code = await this.readFileContent(file);
 
-      console.log("FileCode: " + code);
-
-      cppFiles.push(new CppFile(file.name, code));
+      cppFiles.push({
+        filename: file.name,
+        code: code
+      } as CppFileBody);
     }
+
     return cppFiles;
   }
 

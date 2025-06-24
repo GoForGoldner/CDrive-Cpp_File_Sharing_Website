@@ -5,6 +5,7 @@ import { AuthService } from '../services/auth.service';
   selector: 'user-icon',
   imports: [],
   templateUrl: './user-icon.component.html',
+  standalone: true,
   styleUrl: './user-icon.component.scss'
 })
 export class UserIconComponent {

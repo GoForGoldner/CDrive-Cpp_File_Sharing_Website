@@ -1,25 +1,50 @@
 <div class="main">
-    <nav>
-        <div class="buttons">
-            <button class="default-button" (click)="returnToUserPage()">Back</button>
-            <button class="gradient-button" (click)="runButtonClick()">Run</button>
-        </div>
-        <user-icon />
-    </nav>
-    <ngx-monaco-editor [options]="editorOptions" [(ngModel)]="code"></ngx-monaco-editor>
+  <nav>
+    <div class="buttons">
+      <button (click)="returnToUserPage()" class="default-button">Back</button>
+      <div class="loading-bar">
+        <div *ngIf="this.loading(); else checkMark" class="loading-circle"></div>
+        <ng-template #checkMark>
+          <div id="check-mark">✅</div>
+        </ng-template>
+        <span>{{ this.loadingMessage() }}</span>
+      </div>
+      <button (click)="runButtonClick()" class="gradient-button">Run</button>
+    </div>
+    <user-icon/>
+  </nav>
+  <ngx-monaco-editor [(ngModel)]="ideCode" [options]="editorOptions"></ngx-monaco-editor>
 
-    <dialog #terminal class="terminal" id="terminal">
-        <button id="close-button" (click)="terminalRef.nativeElement.close()">
-            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#000000">
-                <path
-                    d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
-            </svg>
-        </button>
-        <pre id="terminal-output">{{webSocketService.output}}</pre>
-        <div class="input-line">
-            <pre>Terimnal $</pre>
-            <input id="terminal-input" [(ngModel)]="terminalInput" (keydown.enter)="inputEntered()" type="text"
-                autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Enter input...">
-        </div>
-    </dialog>
+  <dialog #terminal class="terminal" id="terminal">
+    <button (click)="terminalRef.nativeElement.close()" id="close-button">
+      <svg fill="#000000" height="24px" viewBox="0 -960 960 960" width="24px" xmlns="http://www.w3.org/2000/svg">
+        <path
+          d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/>
+      </svg>
+    </button>
+    <pre id="terminal-output">{{ webSocketService.output }}</pre>
+    <div class="input-line">
+      <pre>Terimnal $</pre>
+      <input (keydown.enter)="inputEntered()" [(ngModel)]="terminalInput" autocapitalize="off" autocomplete="off"
+             id="terminal-input" placeholder="Enter input..." spellcheck="false" type="text">
+    </div>
+    <div [ngSwitch]="this.webSocketService.connectionState()" class="status">
+      <div *ngSwitchCase="RxStompState.CONNECTING" class="connecting status-message">
+        <div class="loading-circle"></div>
+        <span>Connecting</span>
+      </div>
+      <div *ngSwitchCase="RxStompState.OPEN" class="open status-message">
+        <div class="icon">✅</div>
+        <span>Connected</span>
+      </div>
+      <div *ngSwitchCase="RxStompState.CLOSING" class="closing status-message">
+        <div class="icon">⚠️</div>
+        <span>Closing</span>
+      </div>
+      <div *ngSwitchCase="RxStompState.CLOSED" class="closed status-message">
+        <div class="icon">🚫</div>
+        <span>Closed</span>
+      </div>
+    </div>
+  </dialog>
 </div>

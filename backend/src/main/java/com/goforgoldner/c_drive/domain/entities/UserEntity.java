@@ -16,18 +16,18 @@ public class UserEntity {
   @Column(nullable = false)
   private String username;
 
-  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
   private List<CppFileEntity> cppFiles;
 
   @Column(nullable = false)
   private String password;
 
   public UserEntity() {
-    this(0L, "", new ArrayList<>());
+    this(null, "", new ArrayList<>());
   }
 
   public UserEntity(String username, List<CppFileEntity> cppFiles) {
-    this(0L, username, cppFiles);
+    this(null, username, cppFiles);
   }
 
   public UserEntity(Long id, String username, List<CppFileEntity> cppFiles) {

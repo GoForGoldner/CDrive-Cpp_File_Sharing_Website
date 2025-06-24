@@ -22,11 +22,10 @@ public interface UserService {
      */
     Optional<UserEntity> getUserById(Long userId);
 
-    //TODO
     /**
-     *
-     * @param username
-     * @return
+     * Gets a user by their username from the database.
+     * @param username - A String representing the username of a user
+     * @return The user from the database, or empty if not found
      */
     Optional<UserEntity> getUserByUsername(String username);
 
@@ -67,10 +66,11 @@ public interface UserService {
      */
     Optional<UserEntity> removeCppFile(Long userId, CppFileEntity cppFileEntity);
 
-    //TODO
     /**
-     *
-     * @return
+     * Verifies that a user is registered in the database.
+     * @param username - A String representing username of the user
+     * @param password - A String representing the password of the user
+     * @return Whether the user is in the database
      */
     boolean verifyUser(String username, String password);
 }

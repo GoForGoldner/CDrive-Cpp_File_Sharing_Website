@@ -1,37 +1,41 @@
 <nav>
-    <span class="logo">CDrive</span>
+  <span class="logo">CDrive</span>
 
-    <div class="middle-nav">
-        <input type="text" placeholder="Search...?" [(ngModel)]="searchStr">
+  <div class="middle-nav">
+    <input [(ngModel)]="searchStr" placeholder="Search...?" type="text">
 
-        <button class="import-button gradient-button" (click)="fileButtonClick()">
-            Import
-        </button>
-    </div>
+    <button (click)="fileButtonClick()" class="import-button gradient-button">
+      Import
+    </button>
+  </div>
 
-    <user-icon/>
+  <user-icon/>
 </nav>
 
 <body>
-    <div class="main" (dragover)="onDragEnter($event)" (drop)="onDragDrop($event)" (dragleave)="onDragLeave($event)">
-        <h2 *ngIf="!currentUser?.cppFiles?.length; else files">
-            You currently have no files.
-        </h2>
+<div (dragleave)="onDragLeave($event)" (dragover)="onDragEnter($event)" (drop)="onDragDrop($event)" class="main">
+  <h2 *ngIf="cppFiles()?.length == 0; else files">
+    You currently have no files.
+  </h2>
 
-        <ng-template #files>
-            <div tabindex="0" class="cpp-file" (dblclick)="cppFileClick(cppFile)"
-                *ngFor="let cppFile of filteredCppFiles" randomGradient [gradientKey]="cppFile.id?.toString() || 'default'">
-                <pre>{{cppFile.source_code}}</pre>
-                <div class="gradient-blur"></div>
-                <button class="gradient-button" tabindex="-1">{{cppFile.filename}}</button>
-                <svg id="trash-icon" (click) = "deleteCppFile(cppFile)" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960"
-                    width="24px" fill="#FFFFFF">
-                    <path
-                        d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z" />
-                </svg>
-            </div>
-        </ng-template>
+  <ng-template #files>
+    <div (dblclick)="cppFileClick(cppFile)" *ngFor="let cppFile of filteredCppFiles"
+         [gradientKey]="cppFile.id.toString()"
+         class="cpp-file" randomGradient tabindex="0">
+      <!--      <pre>{{ cppFile?.source_code?.at(0)?.code || "" }}</pre>-->
+      <ngx-monaco-editor [ngModel]="cppFile?.source_code?.at(0)?.code || ''"
+                         [options]="this.editorOptions"></ngx-monaco-editor>
+      <div class="gradient-blur"></div>
+      <button class="gradient-button" tabindex="-1">{{ cppFile.filename }}</button>
+      <svg (click)="deleteCppFile(cppFile)" fill="#FFFFFF" height="24px" id="trash-icon"
+           viewBox="0 -960 960 960"
+           width="24px" xmlns="http://www.w3.org/2000/svg">
+        <path
+          d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/>
+      </svg>
     </div>
+  </ng-template>
+</div>
 </body>
 
-<input type="file" #fileInput (change)="fileChange($event)" accept=".cpp" multiple style="display: none">
+<input #fileInput (change)="fileChange($event)" accept=".cpp" multiple style="display: none" type="file">

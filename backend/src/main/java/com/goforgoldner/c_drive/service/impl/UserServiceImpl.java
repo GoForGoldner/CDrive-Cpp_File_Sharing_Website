@@ -59,7 +59,18 @@ public class UserServiceImpl implements UserService {
             userEntity -> {
               // Update the field in userEntity if userEntityInfo has updated information
               Optional.ofNullable(userEntityInfo.getUsername()).ifPresent(userEntity::setUsername);
-              Optional.ofNullable(userEntityInfo.getCppFiles()).ifPresent(userEntity::setCppFiles);
+
+              if (userEntityInfo.getCppFiles() != null) {
+                // Add the C++ files to the user
+                List<CppFileEntity> cppFiles = userEntityInfo.getCppFiles();
+                for (CppFileEntity file : cppFiles) {
+                  // Set the user to the current user
+                  file.setUser(userEntity);
+
+                  userEntity.getCppFiles().add(file);
+                }
+              }
+
               // Save the userEntity back into the database
               return Optional.of(userRepository.save(userEntity));
             })

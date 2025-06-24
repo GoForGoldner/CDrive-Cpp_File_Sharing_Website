@@ -63,15 +63,6 @@ public class UserController {
       return new ResponseEntity<>(HttpStatus.CONFLICT);
     }
 
-    // Clear the current userEntity list (should be empty)
-    userEntity.getCppFiles().clear();
-    for (CppFileDTO cppFileDTO : userDto.getCppFiles()) {
-      // Map the cpp file from the data object
-      CppFileEntity cppFileEntity = cppFileMapper.mapFrom(cppFileDTO);
-      // Add the new file to the userEntity
-      userEntity.addCppFile(cppFileEntity);
-    }
-
     // Save the user to the database
     UserEntity newUserEntity = userService.createUser(userEntity);
     // Convert the saved user to a database object

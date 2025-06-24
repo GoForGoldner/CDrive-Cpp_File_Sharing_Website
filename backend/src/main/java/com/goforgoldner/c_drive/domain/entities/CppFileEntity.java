@@ -1,12 +1,14 @@
 package com.goforgoldner.c_drive.domain.entities;
 
-import com.goforgoldner.c_drive.service.CppCompilerService;
 import jakarta.persistence.*;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Domain object for a CppFile. This class' purpose is focused on organizing a C++ file and being
+ * Domain object for a CppFile. This class' purpose is focused on organizing a
+ * C++ file and being
  * able to easily compile and execute a file.
  */
 @Entity
@@ -23,23 +25,28 @@ public class CppFileEntity {
 
   private String filename;
 
-  @Column(name = "source_code", columnDefinition = "TEXT")
-  private String code;
+  @OneToMany(mappedBy = "cppFileEntity", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+  private List<CodeEntryEntity> codeEntries;
 
-  @Transient private Path compilePath;
+  @Transient
+  private Path compilePath;
 
   public CppFileEntity() {
-    this(0L, "", "");
+    this(null, "", new ArrayList<>());
   }
 
-  public CppFileEntity(String filename, String code) {
-    this(0L, filename, code);
+  public CppFileEntity(String filename) {
+    this(null, filename, new ArrayList<>());
   }
 
-  public CppFileEntity(Long id, String filename, String code) {
+  public CppFileEntity(String filename, List<CodeEntryEntity> code) {
+    this(null, filename, code);
+  }
+
+  public CppFileEntity(Long id, String filename, List<CodeEntryEntity> code) {
     this.id = id;
     this.filename = filename;
-    this.code = code;
+    this.codeEntries = code;
   }
 
   public Long getId() {
@@ -58,12 +65,12 @@ public class CppFileEntity {
     this.filename = filename;
   }
 
-  public String getCode() {
-    return this.code;
+  public List<CodeEntryEntity> getCodeEntries() {
+    return this.codeEntries;
   }
 
-  public void setCode(String code) {
-    this.code = code;
+  public void setCodeEntries(List<CodeEntryEntity> code) {
+    this.codeEntries = code;
   }
 
   public UserEntity getUser() {
@@ -74,12 +81,27 @@ public class CppFileEntity {
     this.user = user;
   }
 
+  public void addCodeEntry(CodeEntryEntity codeEntry) {
+    codeEntries.add(codeEntry);
+    codeEntry.setCppFileEntity(this);
+  }
+
+  public CodeEntryEntity newestCodeEntry() {
+    codeEntries.sort((a, b) -> {
+      return b.getDate().compareTo(a.getDate());
+    });
+
+    return codeEntries.getFirst();
+  }
+
   @Override
   public boolean equals(Object obj) {
-    if (this == obj) return true;
-    if (obj == null || getClass() != obj.getClass()) return false;
+    if (this == obj)
+      return true;
+    if (obj == null || getClass() != obj.getClass())
+      return false;
 
     CppFileEntity other = (CppFileEntity) obj;
-    return filename.equals(other.filename) && code.equals(other.code);
+    return filename.equals(other.filename) && codeEntries.equals(other.codeEntries);
   }
 }

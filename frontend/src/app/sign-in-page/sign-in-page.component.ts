@@ -1,8 +1,7 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
-import { User, UserService } from '../services/user.service';
+import {LoginBody, UserService} from '../services/user.service';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, FormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 
 @Component({
@@ -22,9 +21,7 @@ export class SignInPageComponent {
   public loginForm: FormGroup;
 
   public constructor(public userService: UserService,
-    public authService: AuthService,
-    public router: Router,
-    public formBuilder: FormBuilder) {
+    private formBuilder: FormBuilder) {
 
     // Creates the Form for the sign-in page
     this.loginForm = this.formBuilder.group({
@@ -53,29 +50,7 @@ export class SignInPageComponent {
 
     this.addDialogListeners();
 
-    // Create a user to send in the request body
-    let newUser: User = new User(-1, username, password, []);
-
-    // Tells the database to find the user
-    this.userService.logInUser(newUser).subscribe({
-      next: (requestBody: any) => {
-        console.log(requestBody);
-        // Set the JWT Token
-        console.log("JWT Token being added: " + requestBody.token);
-        this.authService.setToken(requestBody.token);
-        // Navigate to the user page
-        this.router.navigate(['/user/' + requestBody.user.id]);
-      },
-      error: (error) => {
-        if (error.status == 409) {
-          console.log("Couldn't find user, showing error message.");
-          this.loginErrorModel.nativeElement.showModal();
-        } else {
-          this.authService.logout();
-          this.logIn();
-        }
-      }
-    });
+    this.userService.logInUser({username: username, password: password} as LoginBody);
   }
 
   public signIn() {
@@ -96,20 +71,6 @@ export class SignInPageComponent {
       return;
     }
 
-    // Create a user to send in the request body
-    let newUser: User = new User(-1, username, password, []);
-
-    // Tells the database to add the user
-    this.userService.addUser(newUser).subscribe({
-      next: (requestBody: any) => {
-        // Set the JWT Token
-        this.authService.setToken(requestBody.token);
-        // Navigate to the user page
-        this.router.navigate(['/user/' + requestBody.user.id]);
-      },
-      error: (error) => {
-        this.usernameTakenErrorModal.nativeElement.showModal();
-      }
-    });
+    this.userService.addUser({username: username, password: password} as LoginBody);
   }
 }

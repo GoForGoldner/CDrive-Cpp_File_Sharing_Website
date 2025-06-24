@@ -1,35 +1,28 @@
 // websocket.service.ts
-import { Injectable, OnDestroy } from '@angular/core';
-import { RxStomp } from '@stomp/rx-stomp';
-import { BehaviorSubject } from 'rxjs';
-import { rxStompServiceFactory } from './rx-stomp-service-factory';
+import {Injectable, OnDestroy} from '@angular/core';
+import {rxStompServiceFactory} from './rx-stomp-service-factory';
+import {toSignal} from '@angular/core/rxjs-interop';
+import {RxStompState} from '@stomp/rx-stomp';
 
 @Injectable({
   providedIn: 'root',
 })
 export class WebSocketService implements OnDestroy {
-  private rxStompService: RxStomp;
-  private connectionStatus = new BehaviorSubject<boolean>(false);
-
   public output: string = "";
+  private rxStompService = rxStompServiceFactory();
+  public connectionState = toSignal(this.rxStompService.connectionState$, {initialValue: RxStompState.CLOSED});
 
   constructor() {
-    // Create the service once and keep it alive
-    this.rxStompService = rxStompServiceFactory();
-
-    // Track connection state
-    this.rxStompService.connectionState$.subscribe(state => {
-      const stateString =
-        state === 0 ? 'CONNECTING' :
-          state === 1 ? 'OPEN' :
-            state === 2 ? 'CLOSING' :
-              state === 3 ? 'CLOSED' : 'UNKNOWN';
-      console.log(`WebSocket state: ${state} (${stateString})`);
+    // Subscribe to compiler output
+    this.rxStompService.watch('/user/queue/compiler-output').subscribe((message: any) => {
+      console.log('Received compiler output:', message.body);
+      if (message.body != "") {
+        this.output += message.body;
+      }
     });
 
-    // Subscribe to compiler output
-    this.rxStompService.watch('/topic/compiler-output').subscribe((message: any) => {
-      console.log('Received compiler output:', message.body);
+    this.rxStompService.watch('/user/queue/errors').subscribe((message: any) => {
+      console.log('Received error output:', message.body);
       if (message.body != "") {
         this.output += message.body;
       }
@@ -68,14 +61,14 @@ export class WebSocketService implements OnDestroy {
     console.log("Input message sent!");
   }
 
-  public disconnect() {
+  public disconnect(): void {
     // This should only be called when the application is shutting down
     console.log('Disconnecting WebSocket service');
     this.rxStompService.deactivate();
   }
 
   // Clean up when service is destroyed
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.disconnect();
   }
 }

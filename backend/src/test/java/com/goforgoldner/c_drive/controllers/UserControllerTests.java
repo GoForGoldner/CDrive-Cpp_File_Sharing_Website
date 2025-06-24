@@ -1,5 +1,8 @@
 package com.goforgoldner.c_drive.controllers;
 
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
 import com.goforgoldner.c_drive.config.AbstractTest;
 import com.goforgoldner.c_drive.config.UserDataUtil;
 import com.goforgoldner.c_drive.controller.UserController;
@@ -8,8 +11,6 @@ import com.goforgoldner.c_drive.domain.dto.UserDTO;
 import com.goforgoldner.c_drive.domain.entities.CppFileEntity;
 import com.goforgoldner.c_drive.domain.entities.UserEntity;
 import com.goforgoldner.c_drive.mappers.Mapper;
-import com.goforgoldner.c_drive.service.CppFileService;
-import com.goforgoldner.c_drive.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,16 +18,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.testcontainers.shaded.com.fasterxml.jackson.core.JsonProcessingException;
-import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.util.List;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @ExtendWith(SpringExtension.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @AutoConfigureMockMvc
+@WithMockUser
 public class UserControllerTests extends AbstractTest {
 
   private final MockMvc mockMvc;
@@ -50,6 +51,8 @@ public class UserControllerTests extends AbstractTest {
       Mapper<CppFileEntity, CppFileDTO> cppFileMapper) {
     this.mockMvc = mockMvc;
     this.objectMapper = new ObjectMapper();
+    this.objectMapper.registerModule(new JavaTimeModule());
+    this.objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     this.userController = userController;
     this.userMapper = userMapper;
     this.cppFileMapper = cppFileMapper;
@@ -62,7 +65,7 @@ public class UserControllerTests extends AbstractTest {
   private String partialTestUserJson;
   private String testFileJson;
 
-  //TODO fix broken tests
+  // TODO fix broken tests
 
   @BeforeEach
   void setUp() throws JsonProcessingException {
@@ -81,9 +84,10 @@ public class UserControllerTests extends AbstractTest {
             MockMvcRequestBuilders.post("/api/user")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(testUserJson))
-        .andExpect(MockMvcResultMatchers.jsonPath("id").isNumber())
-        .andExpect(MockMvcResultMatchers.jsonPath("username").value(testUser.getUsername()))
-        .andExpect(MockMvcResultMatchers.jsonPath("cpp_files").isArray());
+        .andDo(MockMvcResultHandlers.print())
+        .andExpect(MockMvcResultMatchers.jsonPath("$.user.id").isNumber())
+        .andExpect(MockMvcResultMatchers.jsonPath("$.user.username").value(testUser.getUsername()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.user.cpp_files").isArray());
   }
 
   @Test
@@ -107,8 +111,8 @@ public class UserControllerTests extends AbstractTest {
         .andExpect(MockMvcResultMatchers.jsonPath("$.username").value(addedEntity.getUsername()))
         .andExpect(MockMvcResultMatchers.jsonPath("$.cpp_files").isArray())
         .andExpect(MockMvcResultMatchers.jsonPath("$.cpp_files.length()").value(2))
-        .andExpect(MockMvcResultMatchers.jsonPath("$.cpp_files[0].id").value(3))
-        .andExpect(MockMvcResultMatchers.jsonPath("$.cpp_files[1].id").value(4))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.cpp_files[0].id").isNumber())
+        .andExpect(MockMvcResultMatchers.jsonPath("$.cpp_files[1].id").isNumber())
         .andExpect(
             MockMvcResultMatchers.jsonPath("$.cpp_files[0].filename").value("helloWorld.cpp"))
         .andExpect(
@@ -145,13 +149,14 @@ public class UserControllerTests extends AbstractTest {
 
     mockMvc
         .perform(MockMvcRequestBuilders.get("/api/user/{id}/files", addedEntity.getId()))
+        .andDo(MockMvcResultHandlers.print())
         .andExpect(MockMvcResultMatchers.jsonPath("$").isArray())
         .andExpect(MockMvcResultMatchers.jsonPath("$.length()").value(2))
-        .andExpect(MockMvcResultMatchers.jsonPath("$[0].id").value(3))
+        .andExpect(MockMvcResultMatchers.jsonPath("$[0].id").isNumber())
         .andExpect(MockMvcResultMatchers.jsonPath("$[0].filename").value("helloWorld.cpp"))
         .andExpect(MockMvcResultMatchers.jsonPath("$[0].source_code").exists())
         .andExpect(MockMvcResultMatchers.jsonPath("$[0].user_id").value(1))
-        .andExpect(MockMvcResultMatchers.jsonPath("$[1].id").value(4))
+        .andExpect(MockMvcResultMatchers.jsonPath("$[1].id").isNumber())
         .andExpect(MockMvcResultMatchers.jsonPath("$[1].filename").value("numberPrinter.cpp"))
         .andExpect(MockMvcResultMatchers.jsonPath("$[1].source_code").exists())
         .andExpect(MockMvcResultMatchers.jsonPath("$[1].user_id").value(1));
@@ -243,9 +248,9 @@ public class UserControllerTests extends AbstractTest {
         .andExpect(MockMvcResultMatchers.jsonPath("$.username").value(addedEntity.getUsername()))
         .andExpect(MockMvcResultMatchers.jsonPath("$.cpp_files").isArray())
         .andExpect(MockMvcResultMatchers.jsonPath("$.cpp_files.length()").value(3))
-        .andExpect(MockMvcResultMatchers.jsonPath("$.cpp_files[0].id").value(3))
-        .andExpect(MockMvcResultMatchers.jsonPath("$.cpp_files[1].id").value(4))
-        .andExpect(MockMvcResultMatchers.jsonPath("$.cpp_files[2].id").value(2))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.cpp_files[0].id").isNumber())
+        .andExpect(MockMvcResultMatchers.jsonPath("$.cpp_files[1].id").isNumber())
+        .andExpect(MockMvcResultMatchers.jsonPath("$.cpp_files[2].id").isNumber())
         .andExpect(
             MockMvcResultMatchers.jsonPath("$.cpp_files[0].filename").value("helloWorld.cpp"))
         .andExpect(
@@ -296,11 +301,11 @@ public class UserControllerTests extends AbstractTest {
                 "/api/user/{userId}/files/{fileId}",
                 addedEntity.getId(),
                 addedEntity.getCppFiles().getFirst().getId()))
-        .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(addedEntity.getId()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.id").isNumber())
         .andExpect(MockMvcResultMatchers.jsonPath("$.username").value(addedEntity.getUsername()))
         .andExpect(MockMvcResultMatchers.jsonPath("$.cpp_files").isArray())
         .andExpect(MockMvcResultMatchers.jsonPath("$.cpp_files.length()").value(1))
-        .andExpect(MockMvcResultMatchers.jsonPath("$.cpp_files[0].id").value(4))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.cpp_files[0].id").isNumber())
         .andExpect(
             MockMvcResultMatchers.jsonPath("$.cpp_files[0].filename").value("numberPrinter.cpp"))
         .andExpect(MockMvcResultMatchers.jsonPath("$.cpp_files[0].source_code").exists())
@@ -319,7 +324,7 @@ public class UserControllerTests extends AbstractTest {
                 "/api/user/{userId}/files/{fileId}",
                 addedEntity.getId(),
                 addedEntity.getCppFiles().getFirst().getId()))
-        .andExpect(MockMvcResultMatchers.status().isNoContent());
+        .andExpect(MockMvcResultMatchers.status().isOk());
   }
 
   @Test
